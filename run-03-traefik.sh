@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
-if ! source ./env-main.sh; then exit 1 ; fi
-
 LOCAL_IP_HTTP="$(jq -r '.ip_addresses.http.ip_address' ${HOME}/.config/local/net.json)"
+LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
 LOCAL_DATA_DIR="${HOME}/Data/traefik"
 
 NAME="traefik"
 
 DNS_RECORD="${NAME}.${LOCAL_DOMAIN}"
 
-TRAEFIK_VERSION="v2.5.3"
+TRAEFIK_VERSION="v2.10.1"
 
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
@@ -17,7 +16,7 @@ CONTAINER_NETWORK_EXTERNAL="external"
 TRAEFIK_ROUTER_NAME="$NAME"
 TRAEFIK_CERT_RESOLVER_NAME="stepca"
 
-ACME_URL="https://ca.${LOCAL_DOMAIN}:8443/acme/traefik/directory"
+ACME_URL="https://ca.${LOCAL_DOMAIN}/acme/traefik/directory"
 ACME_EMAIL="user@${LOCAL_DOMAIN}"
 
 
@@ -31,19 +30,21 @@ test $(docker container ls --filter "name=${CONTAINER_NAME}" -q | wc -l) -eq 0 |
 #		--providers.docker.constraints="Label('tag','app-external')" \
 
 
-ca_certs="/etc/ssl/certs/ca-certificates.crt"
+local_ca_certs="/etc/ssl/certs/ca-certificates.crt"
 # ca_certs=$(sudo ls -l /etc/static/ssl/certs/ca-certificates.crt | awk '{ print $NF }')
 
+#		--entrypoints.http.http.redirections.entryPoint.to=https \
+#		--entrypoints.http.http.redirections.entryPoint.scheme=https \
 
 docker container run \
 	-d \
 	--rm \
 	--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock,ro \
-	--mount type=bind,src=${ca_certs},dst=/etc/ssl/certs/ca-certificates.crt,ro \
+	--mount type=bind,src=${local_ca_certs},dst=/etc/ssl/certs/ca-certificates.crt,ro \
 	--mount type=bind,src=${LOCAL_DATA_DIR}/acme,dst=/etc/ssl/acme \
 	--network "$CONTAINER_NETWORK_EXTERNAL" \
-	-p "${LOCAL_IP_HTTP}":80:80 \
-	-p "${LOCAL_IP_HTTP}":443:443 \
+	--publish "${LOCAL_IP_HTTP}":80:80 \
+	--publish "${LOCAL_IP_HTTP}":443:443 \
 	--label "dns.domain=${DNS_RECORD}" \
 	--label "dns.answer=${LOCAL_IP_HTTP}" \
 	--label "traefik.enable=true" \
@@ -60,8 +61,6 @@ docker container run \
 		--api.insecure=true \
 		--entrypoints.http.address=:80/tcp \
 		--entrypoints.https.address=:443/tcp \
-		--entrypoints.http.http.redirections.entryPoint.to=https \
-		--entrypoints.http.http.redirections.entryPoint.scheme=https \
 		--providers.docker \
 		--providers.docker.network="${DOCKER_NETWORK_EXTERNAL}" \
 		--providers.docker.exposedByDefault=false \
@@ -69,4 +68,7 @@ docker container run \
 		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.email="${ACME_EMAIL}" \
 		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.storage=/etc/ssl/acme/acme.json \
 		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.tlsChallenge=true \
-		--providers.providersthrottleduration=100
+		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.httpChallenge=false \
+		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.dnsChallenge=false \
+		--certificatesResolvers."${TRAEFIK_CERT_RESOLVER_NAME}".acme.certificatesDuration=24 \
+		--providers.providersThrottleDuration=100

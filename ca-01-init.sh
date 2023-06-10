@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 LOCAL_DATA_DIR="${HOME}/Data/step-ca"
+
 CONTAINER_STEP_HOME_DIR="/home/step"
 
 

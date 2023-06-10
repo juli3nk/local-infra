@@ -5,5 +5,9 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-docker container exec -it step-ca \
-	step ca provisioner add "$1" --type ACME
+docker container exec -ti step-ca \
+	step \
+		ca \
+		provisioner \
+		add "$1" \
+		--type ACME

@@ -28,7 +28,7 @@ docker container run \
 	--rm \
 	--mount type=bind,src="${LOCAL_DATA_DIR}",dst="${CONTAINER_STEP_HOME_DIR}" \
 	--network "$NETWORK_NAME" \
-	-p "${LOCAL_IP_CA}":8443:443 \
+	--publish "${LOCAL_IP_CA}":443:443 \
 	--label "dns.domain=${DNS_RECORD}" \
 	--label "dns.answer=${LOCAL_IP_CA}" \
 	--name "$CONTAINER_NAME" \

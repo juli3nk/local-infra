@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-if ! source ./env-main.sh; then exit 1 ; fi
-
 LOCAL_IP_HTTP="$(jq -r '.ip_addresses.http.ip_address' ${HOME}/.config/local/net.json)"
+LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
 
 NAME="whoami"
 
@@ -29,4 +28,4 @@ docker container run \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
 	--name ${CONTAINER_NAME} \
-	traefik/whoami
+    docker.io/traefik/whoami

@@ -9,4 +9,8 @@ if [ -z "$2" ]; then
 	exit 1
 fi
 
-step ca bootstrap --ca-url "$1" --fingerprint "$2"
+step \
+	ca \
+	bootstrap \
+	--ca-url "$1" \
+	--fingerprint "$2"
