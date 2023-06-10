@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+if ! source ./env-main.sh; then exit 1 ; fi
+
+LOCAL_IP_HTTP="$(jq -r '.ip_addresses.http.ip_address' ${HOME}/.config/local/net.json)"
+LOCAL_DATA_PATH="${HOME}/Data/gogs"
+
+NAME="git"
+
+DNS_RECORD="${NAME}.${LOCAL_DOMAIN}"
+
+CONTAINER_NAME="$NAME"
+
+TRAEFIK_ROUTER_NAME="$NAME"
+TRAEFIK_CERT_RESOLVER_NAME="stepca"
+
+
+mkdir -p "$LOCAL_DATA_PATH"
+
+docker container run \
+    -d \
+    --rm \
+    --mount type=bind,src="${LOCAL_DATA_PATH}",dst=/data \
+    -p "${LOCAL_IP_HTTP}":22:22 \
+    --net external \
+	--label "dns.domain=${DNS_RECORD}" \
+	--label "dns.answer=${LOCAL_IP_HTTP}" \
+	--label "traefik.enable=true" \
+	--label "tag=app-external" \
+	--label "traefik.docker.network=external" \
+	--label "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=3000" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.service=${NAME}" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(\`${DNS_RECORD}\`)" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=https" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
+    --name "$CONTAINER_NAME" \
+    docker.io/gogs/gogs
