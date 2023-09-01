@@ -51,6 +51,7 @@ if [ "$(docker container inspect -f '{{ .State.Running }}' "$NAME_REGISTRY" 2> /
 		--name "$NAME_REGISTRY" \
 		"${IMAGE_NAME_REGISTRY}:${IMAGE_TAG_REGISTRY}"
 fi
+exit
 
 
 # UI

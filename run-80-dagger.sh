@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-DAGGER_VERSION="0.6.1"
+DAGGER_VERSION="0.6.4"
 CONTAINER_NAME="dagger-runner"
 
 

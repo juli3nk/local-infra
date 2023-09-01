@@ -130,3 +130,8 @@ HOST = smtp.${LOCAL_DOMAIN}:25
 FROM = noreply@${DNS_RECORD}
 USER = noreply@${DNS_RECORD}
 EOF
+
+### Longhorn
+
+apt install open-iscsi nfs-common
+
