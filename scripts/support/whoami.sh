@@ -1,37 +1,34 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-LOCAL_IP_HTTP="$(jq -r '.ip_addresses.http.ip_address' ${HOME}/.config/local/net.json)"
+ACTION="${1:-}"
+
+LOCAL_IP_HTTP="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
-LOCAL_DATA_PATH="${HOME}/Data/gogs"
 
-NAME="git"
-
-DNS_RECORD="${NAME}.${LOCAL_DOMAIN}"
+NAME="whoami"
 
 CONTAINER_NAME="$NAME"
 
 TRAEFIK_ROUTER_NAME="$NAME"
 TRAEFIK_CERT_RESOLVER_NAME="stepca"
+TRAEFIK_DNS_RECORD="${NAME}.${LOCAL_DOMAIN}"
 
-
-mkdir -p "$LOCAL_DATA_PATH"
 
 docker container run \
 	-d \
 	--rm \
-	--mount type=bind,src="${LOCAL_DATA_PATH}",dst=/data \
-	--net external \
-	--publish "${LOCAL_IP_HTTP}":22:22 \
-	--label "dns.domain=${DNS_RECORD}" \
+	--network external \
+	--label "dns.domain=${TRAEFIK_DNS_RECORD}" \
 	--label "dns.answer=${LOCAL_IP_HTTP}" \
 	--label "traefik.enable=true" \
 	--label "tag=app-external" \
 	--label "traefik.docker.network=external" \
-	--label "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=3000" \
+	--label "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=80" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.service=${NAME}" \
-	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(\`${DNS_RECORD}\`)" \
+	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(\`${TRAEFIK_DNS_RECORD}\`)" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=https" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
 	--name "$CONTAINER_NAME" \
-	docker.io/gogs/gogs
+	docker.io/traefik/whoami
