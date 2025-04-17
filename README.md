@@ -1,16 +1,21 @@
 # Local Infra
 
-## Network
+This project provides a fully self-hosted local development environment composed of essential services like Traefik, Step-CA, SMTP4Dev, Gogs, and more. It is built around Docker and controlled using Bash scripts for simplicity and flexibility.
 
-Create docker network named `external`
+The goal is to offer an all-in-one setup for local development, with built-in support for automatic HTTPS (via ACME and Step-CA), DNS record handling, Git hosting, and SMTP testing—all containerized and easily manageable.
 
-```shell
-./run-00-network.sh
-```
+## Features
+
+- **Step-CA** for private CA and ACME support.
+- **Traefik** as a reverse proxy and automatic certificate manager.
+- **SMTP4Dev** for testing emails in development.
+- **Gogs** for self-hosted Git repositories.
+- **Dagger Engine** support for CI/CD and automated workflows (optional).
+
+- **Docker-based setup**, orchestrated by simple Bash scripts.
+- **Automatic DNS record handling** for containers via labels and AdGuardHome.
 
 ## Apps
-
-### DNS
 
 ### Step CA
 
@@ -74,45 +79,6 @@ Next, delete the ~/.pki directory to get Firefox to refresh its certificate data
 https://support.mozilla.org/en-US/kb/setting-certificate-authorities-firefox
 Setting security.enterprise_roots.enabled to true
 
-### E-mail
-
-```shell
-./run-02-email.sh
-```
-
-### Traefik
-
-```shell
-./run-03-traefik.sh
-```
-
-```cli
---label "traefik.enable=true"
---label "tag=app-external"
---label "traefik.docker.network=external"
---label "traefik.http.services.SERVICE_NAME.loadbalancer.server.port=SERVICE_PORT"
---label "traefik.http.routers.SERVICE_NAME.service=SERVICE_NAME"
---label "traefik.http.routers.SERVICE_NAME.rule=Host(`HOSTNAME`)"
---label "traefik.http.routers.SERVICE_NAME.entrypoints=https"
---label "traefik.http.routers.SERVICE_NAME.tls=true"
---label "traefik.http.routers.SERVICE_NAME.tls.certResolver=stepca"
-```
-
-
-### Registry
-
-```shell
-./run-04-registry.sh
-```
-
-### Kind
-
-https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/
-
-```shell
-./run-05-kind.sh
-```
-
 ### Git
 
 ```shell
@@ -131,7 +97,29 @@ FROM = noreply@${DNS_RECORD}
 USER = noreply@${DNS_RECORD}
 EOF
 
-### Longhorn
+## Kubernetes Environments
 
-apt install open-iscsi nfs-common
+You can spin up a test Kubernetes cluster using one of the following methods:
 
+- **Kind** (Kubernetes in Docker)
+- **Minikube** (Local Kubernetes with VM or Docker backend)
+- **K3s on Debian VM** via `virt-install`
+
+https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/
+
+### Example Usage
+
+```shell
+# Start Kind cluster
+./scripts/k8s/10-kind.sh
+
+# OR Minikube
+./scripts/k8s/11-minikube.sh
+
+# OR K3s in a VM
+./scripts/k8s/12-kvm-k3s.sh
+```
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE) © 2024-2025 juli3nk.
