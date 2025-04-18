@@ -3,7 +3,7 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-TRAEFIK_VERSION="$(jq -r 'traefik' ${HOME}/.config/local/versions.json)"
+TRAEFIK_VERSION="$(jq -r '.traefik' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
@@ -12,6 +12,7 @@ LOCAL_CA_CERTS="/etc/ssl/certs/ca-certificates.crt"
 
 NAME="traefik"
 
+CONTAINER_IMAGE="docker.io/traefik"
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -38,14 +39,14 @@ start() {
     --label "localnet.dns.traefik.domain=${DNS_RECORD}" \
     --label "localnet.dns.traefik.answer=${LOCAL_IP_CLOUD}" \
     --label "traefik.enable=true" \
-    --label "traefik.docker.network=${DOCKER_NETWORK_EXTERNAL}" \
+    --label "traefik.docker.network=${CONTAINER_NETWORK_EXTERNAL}" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.service=api@internal" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(\`${DNS_RECORD}\`)" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=https" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
     --name "${CONTAINER_NAME}" \
-    traefik:"$TRAEFIK_VERSION" \
+    "$CONTAINER_IMAGE":"$TRAEFIK_VERSION" \
       --log.level=DEBUG \
       --api.dashboard=true \
       --api.insecure=true \

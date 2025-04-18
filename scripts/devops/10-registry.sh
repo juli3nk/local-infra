@@ -3,8 +3,8 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-REGISTRY_VERSION="$(jq -r 'registry' ${HOME}/.config/local/versions.json)"
-REGISTRY_UI_VERSION="$(jq -r 'registry-ui' ${HOME}/.config/local/versions.json)"
+REGISTRY_VERSION="$(jq -r '.registry' ${HOME}/.config/local/versions.json)"
+REGISTRY_UI_VERSION="$(jq -r '.registry_ui' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
@@ -13,7 +13,9 @@ LOCAL_DATA_PATH="${HOME}/Data/registry"
 NAME_REGISTRY="registry"
 NAME_UI="registry-ui"
 
+CONTAINER_IMAGE_REGISTRY="docker.io/registry"
 CONTAINER_NAME_REGISTRY="$NAME_REGISTRY"
+CONTAINER_IMAGE_UI="docker.io/joxit/docker-registry-ui"
 CONTAINER_NAME_UI="$NAME_UI"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -52,7 +54,7 @@ start_registry() {
 		--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME_REGISTRY}.tls=true" \
 		--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME_REGISTRY}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
 		--name "$CONTAINER_NAME_REGISTRY" \
-		docker.io/registry:"$REGISTRY_VERSION"
+		"$CONTAINER_IMAGE_REGISTRY":"$REGISTRY_VERSION"
 }
 
 # UI
@@ -85,7 +87,7 @@ start_ui() {
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME_UI}.tls=true" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME_UI}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
     --name "$CONTAINER_NAME_UI" \
-    docker.io/joxit/docker-registry-ui:"$REGISTRY_UI_VERSION"
+    "$CONTAINER_IMAGE_UI":"$REGISTRY_UI_VERSION"
 }
 
 start() {

@@ -3,13 +3,15 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-STEP_CA_VERSION="$(jq -r 'step-ca' ${HOME}/.config/local/versions.json)"
+STEP_CA_VERSION="$(jq -r '.step_ca' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CA="$(jq -r '.ip_addresses.ca.ip_address' ${HOME}/.config/local/net.json)"
+LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
 LOCAL_DATA_DIR="${HOME}/Data/step-ca"
 
 NAME="step-ca"
 
+CONTAINER_IMAGE="docker.io/smallstep/step-ca"
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
 CONTAINER_STEP_HOME_DIR="/home/step"
@@ -29,7 +31,7 @@ init() {
     -ti \
     --rm \
     --mount type=bind,src=${LOCAL_DATA_DIR},dst=${CONTAINER_STEP_HOME_DIR} \
-    docker.io/smallstep/step-ca \
+    "$CONTAINER_IMAGE":"$STEP_CA_VERSION" \
       step ca init
 }
 
@@ -38,7 +40,7 @@ password() {
     -ti \
     --rm \
     --mount type=bind,src=${LOCAL_DATA_DIR},dst=${CONTAINER_STEP_HOME_DIR} \
-    docker.io/smallstep/step-ca \
+    "$CONTAINER_IMAGE":"$STEP_CA_VERSION" \
       vi /home/step/secrets/password
 }
 
@@ -86,12 +88,12 @@ start() {
     -d \
     --rm \
     --mount type=bind,src="${LOCAL_DATA_DIR}",dst="${CONTAINER_STEP_HOME_DIR}" \
-    --network "$CONTAINER_NETWORK_NAME" \
+    --network "$CONTAINER_NETWORK_EXTERNAL" \
     --publish "${LOCAL_IP_CA}":443:443 \
     --label "localnet.dns.ca.domain=${DNS_RECORD}" \
     --label "localnet.dns.ca.answer=${LOCAL_IP_CA}" \
     --name "$CONTAINER_NAME" \
-    docker.io/smallstep/step-ca:"$STEP_CA_VERSION"
+    "$CONTAINER_IMAGE":"$STEP_CA_VERSION"
 }
 
 stop() {

@@ -3,11 +3,14 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
+WHOAMI_VERSION="latest"
+
 LOCAL_IP_HTTP="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
 
 NAME="whoami"
 
+CONTAINER_IMAGE="docker.io/traefik/whoami"
 CONTAINER_NAME="$NAME"
 
 TRAEFIK_ROUTER_NAME="$NAME"
@@ -31,4 +34,4 @@ docker container run \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
 	--label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
 	--name "$CONTAINER_NAME" \
-	docker.io/traefik/whoami
+	"$CONTAINER_IMAGE":"$WHOAMI_VERSION"

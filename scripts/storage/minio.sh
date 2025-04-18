@@ -3,7 +3,7 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-MINIO_VERSION="$(jq -r 'minio' ${HOME}/.config/local/versions.json)"
+MINIO_VERSION="$(jq -r '.minio' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
@@ -12,6 +12,7 @@ LOCAL_DATA_PATH="${HOME}/Data/minio"
 NAME="minio"
 NAME_CONSOLE="console"
 
+CONTAINER_IMAGE="quay.io/minio/minio"
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -49,7 +50,7 @@ start() {
     --label "traefik.http.routers.${TRAEFIK_ROUTER_CONSOLE_NAME}.tls=true" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_CONSOLE_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
     --name "$CONTAINER_NAME" \
-    quay.io/minio/minio:"$MINIO_VERSION" \
+    "$CONTAINER_IMAGE":"$MINIO_VERSION" \
       server \
       /data \
       --console-address ":9001"

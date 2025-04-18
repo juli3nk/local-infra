@@ -3,7 +3,7 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-GOGS_VERSION="$(jq -r 'gogs' ${HOME}/.config/local/versions.json)"
+GOGS_VERSION="$(jq -r '.gogs' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
@@ -11,6 +11,7 @@ LOCAL_DATA_PATH="${HOME}/Data/gogs"
 
 NAME="git"
 
+CONTAINER_IMAGE="docker.io/gogs/gogs"
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -40,7 +41,7 @@ start() {
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
     --name "$CONTAINER_NAME" \
-    docker.io/gogs/gogs:"$GOGS_VERSION"
+    "$CONTAINER_IMAGE":"$GOGS_VERSION"
 }
 
 stop() {

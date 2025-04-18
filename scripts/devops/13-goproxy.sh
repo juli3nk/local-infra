@@ -4,7 +4,7 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-GOPROXY_VERSION="$(jq -r 'goproxy' ${HOME}/.config/local/versions.json)"
+GOPROXY_VERSION="$(jq -r '.goproxy' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
@@ -14,6 +14,7 @@ SECRETS_PATH="${HOME}/Data/secrets"
 
 NAME="goproxy"
 
+CONTAINER_IMAGE="docker.io/goproxy/goproxy"
 CONTAINER_NAME="$NAME"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -44,7 +45,7 @@ start() {
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(\`${DNS_RECORD}\`)" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=http" \
     --name "$CONTAINER_NAME" \
-    docker.io/goproxy/goproxy:"$GOPROXY_VERSION" \
+    "$CONTAINER_IMAGE":"$GOPROXY_VERSION" \
       -listen=0.0.0.0:80
 }
 

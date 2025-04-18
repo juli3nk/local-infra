@@ -3,11 +3,12 @@ set -euo pipefail
 
 ACTION="${1:-}"
 
-SMTP4DEV_VERSION="$(jq -r 'smtp4dev' ${HOME}/.config/local/versions.json)"
+SMTP4DEV_VERSION="$(jq -r '.smtp4dev' ${HOME}/.config/local/versions.json)"
 
 LOCAL_IP_CLOUD="$(jq -r '.ip_addresses.cloud.ip_address' ${HOME}/.config/local/net.json)"
 LOCAL_DOMAIN="$(jq -r '.domain' ${HOME}/.config/local/net.json)"
 
+CONTAINER_IMAGE="docker.io/rnwood/smtp4dev"
 CONTAINER_NAME="mail"
 CONTAINER_NETWORK_EXTERNAL="external"
 
@@ -44,7 +45,7 @@ start() {
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls=true" \
     --label "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certResolver=${TRAEFIK_CERT_RESOLVER_NAME}" \
     --name "$CONTAINER_NAME" \
-    docker.io/rnwood/smtp4dev:"$SMTP4DEV_VERSION"
+    "$CONTAINER_IMAGE":"$SMTP4DEV_VERSION"
 }
 
 stop() {
